@@ -22,12 +22,26 @@ jobs:
           xcrun --sdk iphoneos --show-sdk-version
           cmake --version | head -n1
 
+      - name: Resolve llama.cpp revision
+        id: llama-rev
+        run: echo "rev=$(git -C llmfarm_core.swift/llama.cpp rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache llama.xcframework
+        id: cache-llama
+        uses: actions/cache@v4
+        with:
+          path: llmfarm_core.swift/llama.cpp/build-apple
+          key: llama-xcframework-${{ steps.llama-rev.outputs.rev }}
+
       - name: Build llama.xcframework from source
+        if: steps.cache-llama.outputs.cache-hit != 'true'
         working-directory: llmfarm_core.swift/llama.cpp
         run: |
           chmod +x build-xcframework.sh
           ./build-xcframework.sh
-          ls -la build-apple/llama.xcframework
+
+      - name: Verify xcframework
+        run: ls -la llmfarm_core.swift/llama.cpp/build-apple/llama.xcframework
 
       - name: List schemes
         run: xcodebuild -project LLMFarm.xcodeproj -list
