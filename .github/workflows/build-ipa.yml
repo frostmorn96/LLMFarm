@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: macos-latest
+    timeout-minutes: 180
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,6 +20,14 @@ jobs:
         run: |
           xcodebuild -version
           xcrun --sdk iphoneos --show-sdk-version
+          cmake --version | head -n1
+
+      - name: Build llama.xcframework from source
+        working-directory: llmfarm_core.swift/llama.cpp
+        run: |
+          chmod +x build-xcframework.sh
+          ./build-xcframework.sh
+          ls -la build-apple/llama.xcframework
 
       - name: List schemes
         run: xcodebuild -project LLMFarm.xcodeproj -list
